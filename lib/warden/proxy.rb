@@ -6,7 +6,7 @@ module Warden
   class Proxy
     # An accessor to the winning strategy
     # :api: private
-    attr_accessor :winning_strategy
+    attr_accessor :winning_strategy, :strategies_results
 
     # An accessor to the rack env hash, the proxy owner and its config
     # :api: public
@@ -352,6 +352,10 @@ module Warden
 
         self.winning_strategy = @winning_strategies[scope] = strategy
         strategy._run!
+        
+        self.strategies_results ||= {}
+        self.strategies_results[name] = strategy.result
+        
         break if strategy.halted?
       end
     end

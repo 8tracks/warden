@@ -392,6 +392,7 @@ describe Warden::Proxy do
       end
       setup_rack(app).call(@env)
     end    
+    
   end
 
   describe "lock" do
@@ -585,6 +586,29 @@ describe Warden::Proxy do
     end
   end
 
+  describe "strategies results" do
+    
+    it "should set results on success" do
+      @env['rack.session'] = {}
+      app = lambda do |e|
+        e['warden'].authenticate?(:pass)
+        e['warden'].user.should_not be_nil        
+        e['warden'].strategies_results.should == { :pass => :success }
+      end
+      result = setup_rack(app).call(@env)
+    end
+    
+    it "should set results on failure" do
+      @env['rack.session'] = {}
+      app = lambda do |e|
+        e['warden'].authenticate(:failz)
+        e['warden'].strategies_results.should == { :failz => :failure }
+      end
+      result = setup_rack(app).call(@env)
+    end
+  end
+  
+  
   describe "messages" do
     it "should allow access to the failure message" do
       failure = lambda do |e|
@@ -615,7 +639,7 @@ describe Warden::Proxy do
       end
       result = setup_rack(app).call(@env)
       result[2].should == [nil]
-    end
+    end    
   end
 
   describe "when all strategies are not valid?" do
@@ -651,7 +675,7 @@ describe Warden::Proxy do
       end
       result = setup_rack(app).call(@env)
       result.first.should == 401
-    end
+    end    
   end
 
   describe "authenticated?" do
